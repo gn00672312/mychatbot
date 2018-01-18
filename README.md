@@ -4,7 +4,7 @@ Python3 - LineBot & Heroku 101
 ###### tags: `python` `linebot` `Heroku` `KM` 
 
 
-## 系統環境
+## 系統環境與前置作業
 *    python 3.6
 *    django 1.11.8
 
@@ -17,6 +17,8 @@ ps. 可以用 anaconda 2.7 or 3.6 來建立 pyenv ，內建的 libs 很豐富
     # 透過 conda 建立一個 python3.6 與 django1.11 的 pyenv 
 ```
 [reference](https://conda.io/docs/user-guide/tasks/manage-environments.html#activating-an-environment)
+[申請一個Line Bot帳號](https://dotblogs.com.tw/rexhuang/2017/07/02/120455)
+Line bot 申請完之後，需要去開通 developer 功能，會有 api token 與 channel secret 
 
 ## 從建立 Django 專案開始！
 
@@ -214,17 +216,30 @@ LINE_CHANNEL_SECRET = get_env_variable('LINE_CHANNEL_SECRET')
 ![](https://i.imgur.com/FCH3uyr.png)
 ![](https://i.imgur.com/Bh3wqhj.png)
 
-#### step 2.3 設定 automatic depolys
+#### step 2.3 設定 heroku git
+如果要用指令的方式 auto deploy，我們要設定一下heroku git，到 project root 修改一下 git conf
+```shell=
+vi .git/conf
+```
+
+在conf檔案尾端增加
+```yaml=
+[remote "heroku"]
+        url = https://git.heroku.com/mychatbot101.git
+        fetch = +refs/heads/*:refs/remotes/heroku/*
+```
+
+#### step 2.4 設定 automatic depolys
 點擊 "Enable Automatic Deploys"，之後只要 github 的 master branch 有任何更動，Heroku 就會自動 deploy
 ![](https://i.imgur.com/jrBe9wv.png)
 
 ### step 3. 設定 heroku 的 deploy file
 我們需要在 project root 中增加一些檔案，以下逐一介紹
 
-#### step 3.1 增加 "Pipfile.lock" 跟 "requirements.txt"
+#### step 3.1 增加 "Pipfile" 跟 "requirements.txt"
 Heroku 在 deploy 時會去偵測這檔案的設定，他會依照裡面設定來建立環境
 
-#### Pipfile.lock
+#### Pipfile
 ```yaml=
 [[source]]
 
@@ -255,4 +270,71 @@ Heroku 在 deploy 完成後會去偵測這檔案的設定，他會執行下面�
 web: gunicorn footbot.wsgi --log-file -
 ```
 
-### step 4. create heroku app
+#### step 3.3 git commit & push
+做完以上的事情之後，commit & push 程式碼，這時候 heroku 會發 mail 告訴你說 deploy fail...看了 log 發現原來是這邊錯了
+
+```
+
+
+-----> $ python manage.py collectstatic --noinput
+
+       Traceback (most recent call last):
+
+         File "/tmp/build_24daafe9c3e69537df16943aa95b9c33/gn00672312-mychatbot-d7e3177/mychatbot/get_env.py", line 9, in get_env_variable
+
+           return os.environ[var_name]
+
+         File "/app/.heroku/python/lib/python3.6/os.py", line 669, in __getitem__
+
+           raise KeyError(key) from None
+
+       KeyError: 'SECRET_KEY'
+
+       ......
+       ......
+       
+           SECRET_KEY = get_env_variable('SECRET_KEY')
+
+         File "/tmp/build_24daafe9c3e69537df16943aa95b9c33/gn00672312-mychatbot-d7e3177/mychatbot/get_env.py", line 12, in get_env_variable
+
+           raise ImproperlyConfigured(error_msg)
+
+       django.core.exceptions.ImproperlyConfigured: Set the SECRET_KEY environment variable
+```
+原來是 django 的環境變數抓不到啊
+
+#### step 3.4 設定環境變數
+還記得前面我們把環境變數寫在 .env 嗎？這時候派上用場了！！
+開啟你的 bash，在 project root 輸入
+```shell=
+heroku config:set SECRET_KEY=aaaaaaaaaaaaa
+heroku config:set LINE_CHANNEL_ACCESS_TOKEN=bbbbbbbbbbb
+heroku config:set LINE_CHANNEL_SECRET=ccccccccccccccc
+```
+這樣環境變數就設完了~
+[reference](https://devcenter.heroku.com/articles/config-vars)
+
+#### step 4. 重新執行 deploy
+做完以上步驟，手動做一次 deploy，heroku 上面有提供很簡單的按鈕，點一下就好
+
+![](https://i.imgur.com/YVhq7zV.png)
+
+### 設定 line webhook
+進入 [Line Developers](https://developers.line.me/en/) 內設定 webhook，line bot 申請方式這裡就不再贅述，可以參考最前面提到的環境設定與前置作業
+
+進入 Line Developers，介面大概是長這樣，如果前面大家有申請 API TOKEN 應該很熟悉
+
+![](https://i.imgur.com/7poNlI9.png)
+
+在頁面下方的 webhook 設定
+
+![](https://i.imgur.com/ZJM9ET3.png)
+
+把 "Use webhooks" 設為 Enabled
+再把 Deploy 在 heroku 的 url 填入 webhook url 欄位就好囉
+
+### 測試你的 line echobot
+
+![](https://i.imgur.com/LrvGD20.png)
+
+完成！
