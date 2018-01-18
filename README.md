@@ -5,6 +5,7 @@ Python3 - LineBot & Heroku 101
 
 
 ## 系統環境與前置作業
+### 系統環境
 *    python 3.6
 *    django 1.11.8
 
@@ -16,7 +17,9 @@ ps. 可以用 anaconda 2.7 or 3.6 來建立 pyenv ，內建的 libs 很豐富
 
     # 透過 conda 建立一個 python3.6 與 django1.11 的 pyenv 
 ```
-[reference](https://conda.io/docs/user-guide/tasks/manage-environments.html#activating-an-environment)
+[Anaconda reference](https://conda.io/docs/user-guide/tasks/manage-environments.html#activating-an-environment)
+
+### 開通 Linebot
 [申請一個Line Bot帳號](https://dotblogs.com.tw/rexhuang/2017/07/02/120455)
 Line bot 申請完之後，需要去開通 developer 功能，會有 api token 與 channel secret 
 
@@ -123,8 +126,7 @@ def callback(request):
 ```
 
 #### step 3.4 寫 custom handle function
-自己的 handler 自己寫，這邊提供兩種做法，"parse_events" 是給 webhook_parser 用，"handle_text_message" 是給 webhook_handler 用，兩個 function 都只是很單純的將 input_text 放到 reply 的 TextSendMessage 中，echo 就是這樣！
-
+自己的 handler 自己寫，這邊提供兩種做法，"parse_events" 是給 webhook_parser 用，"handle_text_message" 是給 webhook_handler 用，兩個 function 都只是很單純的將 input_text 放到 reply 的 TextSendMessage 中，echo 完成！未來需要讓你的 bot 更強大，可以從這邊下手。
 #### views.py
 ```python=
 ...
@@ -153,7 +155,7 @@ def default(event):
 因為這個 project 最後要 deploy 至 Heroku 平台上，需要透過 github 讓整個過程更簡化，所以我們的 project env 必須先處理過才行
 
 我的做法是在 project root 建立一個 .env 的檔案
-這個 .env 檔紀錄 project SECRET_KEY, LINE_CHANNEL_ACCESS_TOKEN 以及 LINE_CHANNEL_SECRET
+這個 .env 檔紀錄 project SECRET_KEY, LINE_CHANNEL_ACCESS_TOKEN 以及 LINE_CHANNEL_SECRET，這些 security 資訊其實並不適合放在 github 上面，所以到時候 push 上 github 時，切記要設定 gitignore
 
 #### .env
 ``` shell=
