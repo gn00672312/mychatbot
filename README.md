@@ -1,4 +1,4 @@
-# mychatbotPython3 - LineBot & Heroku 101
+Python3 - LineBot & Heroku 101
 ====
 
 ###### tags: `python` `linebot` `Heroku` `KM` 
@@ -197,10 +197,62 @@ LINE_CHANNEL_SECRET = get_env_variable('LINE_CHANNEL_SECRET')
 
 這樣基本上 django app 就告一段落了，下一步處理 heroku 的問題
 
-### Deploy linebot 至 Heroku 上！
+## Deploy linebot 至 Heroku 上！
 
-#### step 1. 先去 HEROKU 上開一個新 APP
+### step 1. 先去 HEROKU 上開一個新 APP
 ![](https://i.imgur.com/SeGcUl6.png)
 
-#### step 2. Deploy app
-到 deploy 介面，這裡是以 github webhook 為例，先去把剛剛的程式碼 push 上 github
+### step 2. Deploy app
+這裡是以 github webhook 為例
+
+#### step 2.1 取得 github repo
+先去把剛剛的程式碼 push 上 github，取得 git repo (例如我的 repo 為 https://github.com/gn00672312/mychatbot)
+    ![](https://i.imgur.com/jkP32am.png)
+
+#### step 2.2 掛上 github webhook
+接著到 heroku deploy 介面，找到 deployment method，選擇 github，並輸入要 deploy 的 repo
+![](https://i.imgur.com/FCH3uyr.png)
+![](https://i.imgur.com/Bh3wqhj.png)
+
+#### step 2.3 設定 automatic depolys
+點擊 "Enable Automatic Deploys"，之後只要 github 的 master branch 有任何更動，Heroku 就會自動 deploy
+![](https://i.imgur.com/jrBe9wv.png)
+
+### step 3. 設定 heroku 的 deploy file
+我們需要在 project root 中增加一些檔案，以下逐一介紹
+
+#### step 3.1 增加 "Pipfile.lock" 跟 "requirements.txt"
+Heroku 在 deploy 時會去偵測這檔案的設定，他會依照裡面設定來建立環境
+
+#### Pipfile.lock
+```yaml=
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+
+[packages]
+
+gunicorn = "*"
+
+[requires]
+
+python_version = "3.6"
+```
+gunicorn - Python WSGI HTTP 伺服器套件
+
+#### requirements.txt
+```
+django==1.11.8
+line-bot-sdk==1.5.0
+django-heroku==0.2.0
+```
+
+#### step 3.2 增加 "Procfile"
+Heroku 在 deploy 完成後會去偵測這檔案的設定，他會執行下面的指令啟動 HTTP SERVER
+```yaml=
+web: gunicorn footbot.wsgi --log-file -
+```
+
+### step 4. create heroku app
